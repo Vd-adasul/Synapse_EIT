@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mimic-db:
+    image: postgres:13
+    container_name: mimic-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: mimic
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - mimic_data:/var/lib/postgresql/data
+      # Mount the demo data and build scripts for easy access inside the container
+      - ./dataset/unziped demo:/mimic_data
+      - ./mimic-code:/mimic_code
+
+volumes:
+  mimic_data:
