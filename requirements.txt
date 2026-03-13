@@ -1,0 +1,10 @@
+opencv-python
+pandas
+matplotlib
+numpy
+shap
+scikit-learn
+xgboost
+psycopg2-binary
+tqdm
+chart.js

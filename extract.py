@@ -160,9 +160,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--db', type=str, default='mimic')
     parser.add_argument('--out_path', type=str, default='./output')
-    parser.add_argument('--window_size', type=int, default=12)
-    parser.add_argument('--gap_time', type=int, default=6)
-    parser.add_argument('--pred_time', type=int, default=6)
+    parser.add_argument('--window_size', type=int, default=6)
+    parser.add_argument('--gap_time', type=int, default=1)
+    parser.add_argument('--pred_time', type=int, default=3)
     
     args = parser.parse_args()
     if not os.path.exists(args.out_path):

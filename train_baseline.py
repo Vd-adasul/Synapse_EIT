@@ -16,7 +16,7 @@ def train():
 
     labels = ['shock', 'sepsis', 'deterioration', 'arrest']
     vitals = ['heart_rate', 'respiratory_rate', 'spo2', 'map_arterial', 'map_nibp', 'lactate']
-    feature_names = [f"{v}_t-{12-i}" for i in range(12) for v in vitals]
+    feature_names = [f"{v}_t-{6-i}" for i in range(6) for v in vitals]
 
     models = {}
     
@@ -56,24 +56,37 @@ def train():
             # 4. Explainability (SHAP) - for the base model
             print("Generating SHAP values...")
             explainer = shap.TreeExplainer(base_model)
-            shap_v = explainer.shap_values(X_test)
+            shap_values = explainer.shap_values(X_test)
             
-            # Robust handling for binary SHAP outputs [neg, pos] vs single output
-            if isinstance(shap_v, list):
-                shap_v = shap_v[1]
-            elif len(shap_v.shape) == 3:
-                shap_v = shap_v[:, :, 1]
-            
-            shap_v = np.array(shap_v).astype(float)
-            X_test_plot = np.array(X_test).astype(float)
-            
-            plt.figure(figsize=(10, 6))
-            shap.summary_plot(shap_v, X_test_plot, feature_names=feature_names, show=False)
-            plt.title(f"Clinical Drivers: {label.upper()}")
-            plt.tight_layout()
-            plt.savefig(os.path.join(out_path, f"shap_{label}.png"))
-            plt.close()
-            print(f"SHAP summary saved for {label}")
+            # Robust mapping for SHAP outputs across different versions
+            # Goal: Get the contributions for the POSITIVE class (index 1)
+            try:
+                if isinstance(shap_values, list):
+                    # For older SHAP/XGB, binary returns [neg, pos]
+                    shap_contrib = shap_values[1] if len(shap_values) > 1 else shap_values[0]
+                elif hasattr(shap_values, "values"): # shap.Explanation object
+                    shap_contrib = shap_values.values
+                    if len(shap_contrib.shape) == 3: # (samples, features, classes)
+                        shap_contrib = shap_contrib[:, :, 1]
+                elif len(shap_values.shape) == 3:
+                     # Some versions return 3D array for binary
+                    shap_contrib = shap_values[:, :, 1]
+                else:
+                    # Already 2D (samples, features)
+                    shap_contrib = shap_values
+                
+                # Ensure it is a numpy array for summary_plot
+                shap_contrib = np.array(shap_contrib).astype(float)
+                
+                plt.figure(figsize=(10, 6))
+                shap.summary_plot(shap_contrib, X_test, feature_names=feature_names, show=False)
+                plt.title(f"Clinical Drivers: {label.upper()}")
+                plt.tight_layout()
+                plt.savefig(os.path.join(out_path, f"shap_{label}.png"))
+                plt.close()
+                print(f"SHAP summary saved for {label}")
+            except Exception as shap_err:
+                print(f"Warning: SHAP failed for {label}: {shap_err}")
 
         except Exception as e:
             print(f"FATAL ERROR in {label}: {e}")

@@ -163,3 +163,11 @@ train_log_detailed.txt
 validation_report.txt
 MIMIC_Extract/
 mimic-code/
+
+# Black Box specific
+black\ box/full\ video/
+black\ box/trimmed\ video/*.mp4
+black\ box/output/telemetry_*.json
+black\ box/output/audit_trail_*.json
+black\ box/output/sessions.json
+!black\ box/trimmed\ video/videoplayback\ -\ Trim.mp4

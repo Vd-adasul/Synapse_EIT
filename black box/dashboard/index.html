@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surgical Flight Recorder | Project Sentinel</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="brand">
+                <div class="badge-live">LIVE</div>
+                <h1>PROJECT SENTINEL <span class="sub">SURGICAL FLIGHT RECORDER</span></h1>
+            </div>
+            <div class="integrity-status" id="integrityBadge">
+                <select id="sessionPicker" class="session-picker hidden">
+                    <option value="">LATEST SESSION</option>
+                </select>
+                <span class="pulse"></span>
+                <span class="status-text">INTEGRITY VERIFIED</span>
+                <span class="hash-id" id="currentHash">HASH: INITIALIZING...</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="left-panel">
+                <div class="video-wrapper glass">
+                    <video id="surgicalVideo" preload="auto">
+                        <source src="../trimmed video/videoplayback - Trim.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-overlay">
+                        <div class="playback-controls">
+                            <button id="playPauseBtn">PLAY</button>
+                            <span id="currentTime">00:00</span> / <span id="duration">00:00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vitals-grid">
+                    <div class="vital-card glass" id="card-hr">
+                        <label>Heart Rate</label>
+                        <div class="value-container">
+                            <span class="value" id="hrValue">--</span>
+                            <span class="unit">BPM</span>
+                        </div>
+                        <div class="mini-graph"><canvas id="hrChart"></canvas></div>
+                    </div>
+                    <div class="vital-card glass" id="card-spo2">
+                        <label>SpO2</label>
+                        <div class="value-container">
+                            <span class="value" id="spo2Value">--</span>
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                    <div class="vital-card glass" id="card-bp">
+                        <label>Sys. BP</label>
+                        <div class="value-container">
+                            <span class="value" id="bpValue">--</span>
+                            <span class="unit">mmHg</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="right-panel glass">
+                <div class="panel-header">
+                    <h2>AI ANOMALY LOG</h2>
+                    <span class="count" id="anomalyCount">0</span>
+                </div>
+                <div class="anomaly-timeline" id="anomalyLog">
+                    <!-- Dynamic pins go here -->
+                </div>
+                
+                <div class="integrity-panel">
+                    <h3>CRYPTOGRAPHIC TRAIL</h3>
+                    <div class="final-seal hidden" id="finalSealWall">
+                        <label>FINAL SEALING HASH</label>
+                        <div class="seal-value" id="finalSealHash">--</div>
+                    </div>
+                    <div class="hash-chain" id="hashChain">
+                        <!-- Sequential hashes list -->
+                    </div>
+                    <button class="verify-btn" id="verifyBtn">RUN AUDIT VERIFICATION</button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <div class="terminal-overlay hidden" id="terminal">
+        <div class="terminal-header">
+            <span>VERIFICATION LOG</span>
+            <button id="closeTerminal">×</button>
+        </div>
+        <div class="terminal-content" id="logOutput"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
