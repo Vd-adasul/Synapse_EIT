@@ -7,4 +7,3 @@ scikit-learn
 xgboost
 psycopg2-binary
 tqdm
-chart.js
