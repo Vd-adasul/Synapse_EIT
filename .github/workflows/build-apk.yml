@@ -32,22 +32,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-
-      - name: Install dependencies
+      - name: Prebuild Android project
         working-directory: ./synapse-mobile
-        run: npm install
+        run: npx expo prebuild --platform android --clean
 
-      - name: Build APK locally via EAS
-        working-directory: ./synapse-mobile
-        # The EXPO_NO_TELEMETRY prevents prompts. 
-        # --local tells EAS to build right on the Github Runner instead of queuing in Expo cloud.
-        run: EXPO_NO_TELEMETRY=1 eas build --platform android --profile preview --local --non-interactive --output app.apk
+      - name: Build APK (Assemble Release)
+        working-directory: ./synapse-mobile/android
+        run: ./gradlew assembleRelease
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: synapse-mobile-apk
-          path: synapse-mobile/app.apk
+          path: synapse-mobile/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 7
