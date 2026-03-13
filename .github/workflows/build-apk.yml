@@ -25,6 +25,14 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install dependencies
+        working-directory: ./synapse-mobile
+        run: npm install
+
+      - name: Prebuild Android project
+        working-directory: ./synapse-mobile
+        run: npx expo prebuild --platform android --clean
+
       - name: Setup Java (for Android SDK)
         uses: actions/setup-java@v4
         with:
@@ -34,14 +42,6 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Install dependencies
-        working-directory: ./synapse-mobile
-        run: npm install
-
-      - name: Prebuild Android project
-        working-directory: ./synapse-mobile
-        run: npx expo prebuild --platform android --clean
 
       - name: Build APK (Assemble Release)
         working-directory: ./synapse-mobile/android
