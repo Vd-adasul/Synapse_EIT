@@ -24,6 +24,21 @@ const SAMPLE_TELEMETRY = Array.from({ length: 120 }, (_, i) => {
   };
 });
 
+const SAMPLE_COMMS = [
+  { timestamp: 2, speaker: 'Surgeon', text: 'Scalpel, please. Commencing incision.', type: 'normal' },
+  { timestamp: 5, speaker: 'Nurse', text: 'Vitals stable. BP 120/80.', type: 'normal' },
+  { timestamp: 9, speaker: 'SYSTEM', text: 'CRITICAL ALARM: Tachycardia Detected', type: 'alarm' },
+  { timestamp: 12, speaker: 'Anesthesia', text: 'Heart rate spiking. Pushing meds.', type: 'normal' },
+  { timestamp: 16, speaker: 'Surgeon', text: 'Hold steady... stabilizing.', type: 'normal' },
+  { timestamp: 20, speaker: 'SYSTEM', text: 'ALERT: Erratic Table Motion', type: 'alert' },
+  { timestamp: 22, speaker: 'Nurse', text: 'Sorry, bumped the tray.', type: 'normal' },
+  { timestamp: 29, speaker: 'SYSTEM', text: 'WARNING: SpO2 Desaturation', type: 'alarm' },
+  { timestamp: 32, speaker: 'Anesthesia', text: 'Adjusting O2 mix now.', type: 'normal' },
+  { timestamp: 38, speaker: 'Surgeon', text: 'Levels normalizing. Proceeding.', type: 'normal' },
+  { timestamp: 45, speaker: 'Nurse', text: 'Vitals returning to baseline.', type: 'normal' },
+  { timestamp: 55, speaker: 'Surgeon', text: 'Closing up.', type: 'normal' },
+];
+
 function generateHash() {
   const chars = '0123456789abcdef';
   let h = '';
@@ -62,4 +77,4 @@ export async function loadSessions(basePath = '') {
   return null;
 }
 
-export { SAMPLE_TELEMETRY, SAMPLE_AUDIT };
+export { SAMPLE_TELEMETRY, SAMPLE_AUDIT, SAMPLE_COMMS };

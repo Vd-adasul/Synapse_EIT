@@ -49,33 +49,59 @@ export default function HashMatrix({ auditTrail, currentIdx, tamperActive, final
         </div>
       </div>
 
-      {/* Final seal */}
-      {finalHash && (
+      {/* Hash Summary */}
+      <div style={{
+        margin: '10px 14px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px'
+      }}>
+        {/* Genesis Block */}
         <div style={{
-          margin: '10px 14px 0',
-          padding: '10px 12px',
-          background: tamperActive ? 'rgba(255,45,85,0.08)' : 'rgba(0, 122, 255, 0.06)',
-          border: `1px solid ${tamperActive ? 'rgba(255,45,85,0.3)' : 'rgba(0, 122, 255, 0.2)'}`,
+          padding: '8px 10px',
+          background: 'var(--glass-bg)',
+          border: '1px solid var(--glass-border)',
           borderRadius: 'var(--radius-sm)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
           <div style={{
-            fontSize: '9px',
-            fontFamily: 'var(--font-mono)',
-            color: tamperActive ? 'var(--color-critical)' : 'var(--accent-blue)',
-            fontWeight: 700,
-            letterSpacing: '1.5px',
-            marginBottom: '4px',
-          }}>MASTER SEAL HASH</div>
+            fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)',
+            fontWeight: 700, letterSpacing: '1px', marginBottom: '2px',
+          }}>GENESIS HASH [00000]</div>
           <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '10px',
-            wordBreak: 'break-all',
-            lineHeight: 1.5,
-            color: tamperActive ? 'var(--color-critical)' : 'var(--text-secondary)',
-            textDecoration: tamperActive ? 'line-through' : 'none',
-          }}>{finalHash}</div>
+            fontFamily: 'var(--font-mono)', fontSize: '9px', wordBreak: 'break-all',
+            color: 'var(--text-secondary)'
+          }}>{auditTrail.length > 0 ? auditTrail[0].data_hash : 'AWAITING GENESIS...'}</div>
         </div>
-      )}
+
+        {/* Latest Block */}
+        <div style={{
+          padding: '8px 10px',
+          background: tamperActive ? 'rgba(255,45,85,0.08)' : 'rgba(0, 255, 163, 0.05)',
+          border: `1px solid ${tamperActive ? 'rgba(255,45,85,0.3)' : 'rgba(0, 255, 163, 0.2)'}`,
+          borderRadius: 'var(--radius-sm)',
+          transition: 'all 0.2s',
+        }}>
+          <div style={{
+            fontSize: '9px', fontFamily: 'var(--font-mono)',
+            color: tamperActive ? 'var(--color-critical)' : 'var(--color-stable)',
+            fontWeight: 700, letterSpacing: '1px', marginBottom: '2px',
+            display: 'flex', justifyContent: 'space-between'
+          }}>
+            <span>LATEST HASH [{currentIdx.toString().padStart(5, '0')}]</span>
+            {tamperActive && <span style={{ animation: 'pulse-dot 1s infinite' }}>⚠ CORRUPTED</span>}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-mono)', fontSize: '9px', wordBreak: 'break-all',
+            color: tamperActive ? 'var(--color-critical)' : 'var(--text-primary)',
+            textDecoration: tamperActive ? 'line-through' : 'none',
+            opacity: tamperActive ? 0.8 : 1
+          }}>
+            {tamperActive ? '0xef4d... [PAYLOAD ALTERED] ...f1c9 => MISMATCH' : finalHash}
+          </div>
+        </div>
+      </div>
 
       {/* Hash chain scroll */}
       <div

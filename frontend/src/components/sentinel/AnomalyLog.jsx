@@ -115,7 +115,7 @@ export default function AnomalyLog({ anomalies, onJump }) {
                     letterSpacing: '0.5px',
                     textTransform: 'uppercase',
                   }}>
-                    Click to jump -5s for context
+                    Click to jump directly to event
                   </div>
                 </button>
               )

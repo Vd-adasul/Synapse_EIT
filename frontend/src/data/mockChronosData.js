@@ -39,8 +39,8 @@ export const patients = [
     shapFeatures: [
       { feature: 'Lactate (t-1)', value: 0.28, direction: 'risk' },
       { feature: 'MAP (t-2)', value: -0.22, direction: 'risk' },
-      { feature: 'Heart Rate (t-1)', value: 0.18, direction: 'risk' },
-      { feature: 'SpO2 (t-3)', value: -0.15, direction: 'risk' },
+      { feature: 'SpO2 (t-3)', value: 0.16, direction: 'protective' },
+      { feature: 'Heart Rate (t-1)', value: 0.14, direction: 'risk' },
       { feature: 'Resp. Rate (t-1)', value: 0.12, direction: 'risk' },
       { feature: 'MAP NIBP (t-4)', value: -0.08, direction: 'protective' },
     ],

@@ -35,17 +35,17 @@ export default function ShapExplainer({ features, patientId }) {
       </div>
 
       <ResponsiveContainer width="100%" height={100}>
-        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 100 }}>
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
           <XAxis type="number" hide domain={[-0.4, 0.4]} />
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fill: '#cbd5e1', fontSize: 9, fontFamily: 'JetBrains Mono', fontWeight: 600, letterSpacing: '1px' }}
-            width={95}
+            tick={{ fill: '#f1f5f9', fontSize: 10, fontFamily: 'JetBrains Mono', fontWeight: 600, letterSpacing: '1px' }}
+            width={130}
             axisLine={false}
             tickLine={false}
           />
-          <Bar dataKey="value" radius={[2, 2, 2, 2]} barSize={8}>
+          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={8}>
             {data.map((entry, index) => (
               <Cell
                 key={index}

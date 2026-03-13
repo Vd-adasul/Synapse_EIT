@@ -71,7 +71,7 @@ export default function VitalsTicker({ vitals, history, status }) {
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '4px' }}>
               <span
                 className={cfg.key === 'heart_rate' ? 'animate-heartbeat' : ''}
                 style={{
@@ -80,7 +80,7 @@ export default function VitalsTicker({ vitals, history, status }) {
                   color: isCritical ? cfg.color : 'var(--text-primary)',
                   fontFamily: 'var(--font-display)',
                   letterSpacing: '-1px',
-                  lineHeight: 1,
+                  lineHeight: '28px',
                   animationDuration: cfg.key === 'heart_rate' ? `${60 / value}s` : undefined
                 }}>
                 {typeof value === 'number' ? (Number.isInteger(value) ? value : value.toFixed(1)) : '--'}

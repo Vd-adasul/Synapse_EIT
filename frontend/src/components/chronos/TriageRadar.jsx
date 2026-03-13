@@ -106,7 +106,7 @@ function PatientCard({ patient, isSelected, onClick, rank }) {
       {/* Top row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', width: '18px' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-dim)', opacity: 0.5, fontFamily: 'var(--font-mono)', width: '18px' }}>
             #{rank}
           </span>
           <span style={{ fontWeight: 600, fontSize: '13px' }}>Bed {patient.bed}</span>
@@ -118,14 +118,13 @@ function PatientCard({ patient, isSelected, onClick, rank }) {
       {/* Reason */}
       <div style={{
         fontSize: '11px',
-        color: 'var(--text-dim)',
+        color: 'var(--text-secondary)',
         marginTop: '6px',
         marginLeft: '36px',
       }}>
         {patient.admitReason}
       </div>
 
-      {/* Risk bars */}
       {isSelected && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
@@ -133,10 +132,10 @@ function PatientCard({ patient, isSelected, onClick, rank }) {
           transition={{ duration: 0.3 }}
           style={{ marginTop: '10px', marginLeft: '36px' }}
         >
-          <RiskBar label="Shock" value={patient.riskScores.shock} icon={Zap} />
-          <RiskBar label="Sepsis" value={patient.riskScores.sepsis} icon={Activity} />
-          <RiskBar label="Deterioration" value={patient.riskScores.deterioration} icon={AlertTriangle} />
-          <RiskBar label="Arrest" value={patient.riskScores.arrest} icon={Skull} />
+          <RiskBar label="Shock" value={patient.riskScores.shock} icon={Zap} labelWidth="w-20" />
+          <RiskBar label="Sepsis" value={patient.riskScores.sepsis} icon={Activity} labelWidth="w-20" />
+          <RiskBar label="Deterioration" value={patient.riskScores.deterioration} icon={AlertTriangle} labelWidth="w-20" />
+          <RiskBar label="Arrest" value={patient.riskScores.arrest} icon={Skull} labelWidth="w-20" />
         </motion.div>
       )}
     </button>
@@ -164,14 +163,14 @@ function RiskBadge({ value, status }) {
   )
 }
 
-function RiskBar({ label, value, icon: Icon }) {
+function RiskBar({ label, value, icon: Icon, labelWidth = "70px" }) {
   const pct = Math.round(value * 100)
   const color = value > 0.7 ? 'var(--color-critical)' : value > 0.4 ? 'var(--color-observing)' : 'var(--color-stable)'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
       <Icon size={10} color="var(--text-dim)" />
-      <span style={{ fontSize: '10px', color: 'var(--text-dim)', width: '70px', fontFamily: 'var(--font-mono)' }}>{label}</span>
+      <span style={{ fontSize: '10px', color: 'var(--text-dim)', width: labelWidth, fontFamily: 'var(--font-mono)' }}>{label}</span>
       <div style={{
         flex: 1,
         height: '4px',

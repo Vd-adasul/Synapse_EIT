@@ -6,12 +6,13 @@ import MagneticTimeline from '../components/sentinel/MagneticTimeline'
 import AnomalyLog from '../components/sentinel/AnomalyLog'
 import TamperSimulator from '../components/sentinel/TamperSimulator'
 import VitalsSync from '../components/sentinel/VitalsSync'
-import { loadTelemetry, loadAuditTrail } from '../data/sentinelLoader'
+import { loadTelemetry, loadAuditTrail, SAMPLE_COMMS } from '../data/sentinelLoader'
 import { playBreachAlarm, playAnomalyPing } from '../utils/sounds'
 
 export default function SentinelView() {
   const [telemetry, setTelemetry] = useState([])
   const [audit, setAudit] = useState([])
+  const [comms, setComms] = useState([])
   const [currentTime, setCurrentTime] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState(0)
@@ -25,6 +26,7 @@ export default function SentinelView() {
       const aud = await loadAuditTrail()
       setTelemetry(tel)
       setAudit(aud)
+      setComms(SAMPLE_COMMS)
     }
     load()
   }, [])
@@ -73,8 +75,7 @@ export default function SentinelView() {
 
   const handleJumpToAnomaly = (timestamp) => {
     playAnomalyPing()
-    const jumpTarget = Math.max(0, timestamp - 5)
-    handleSeek(jumpTarget)
+    handleSeek(timestamp)
     if (videoRef.current && videoRef.current.paused) {
       videoRef.current.play()
       setIsPlaying(true)
@@ -180,7 +181,7 @@ export default function SentinelView() {
         />
       </div>
 
-      {/* Right: Hash Matrix + Anomaly Log */}
+      {/* Right: Telemetry Sidebar */}
       <div style={{
         gridColumn: '2',
         gridRow: '1 / 3',
@@ -195,6 +196,7 @@ export default function SentinelView() {
           tamperActive={tamperActive}
           finalHash={audit.length > 0 ? audit[audit.length - 1].data_hash : null}
         />
+
         <AnomalyLog
           anomalies={anomalies}
           onJump={handleJumpToAnomaly}

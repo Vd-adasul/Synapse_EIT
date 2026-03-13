@@ -4,6 +4,7 @@ import TriageRadar from '../components/chronos/TriageRadar'
 import CrashOdometer from '../components/chronos/CrashOdometer'
 import ShapExplainer from '../components/chronos/ShapExplainer'
 import VitalsTicker from '../components/chronos/VitalsTicker'
+import GenerateAccessQR from '../components/chronos/GenerateAccessQR'
 import { patients } from '../data/mockChronosData'
 import { playCriticalBeep, playNavClick } from '../utils/sounds'
 
@@ -75,26 +76,27 @@ export default function ChronosView() {
             highlightOrgan={selectedPatient.highlightOrgan}
             riskLevel={selectedPatient.aggregateRisk}
           />
-          {/* Patient info overlay */}
-          <div style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '20px',
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(12px)',
-            padding: '12px 18px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--glass-border)',
-          }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', letterSpacing: '1px' }}>
-              SELECTED PATIENT
+          {/* Patient info overlay with QR action */}
+          <div className="absolute bottom-6 left-6 flex flex-col gap-3 w-72 z-40">
+            <div className="bg-slate-900/60 backdrop-blur-xl p-5 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
+              {/* Decorative accent line */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/50"></div>
+              
+              <div className="text-[10px] text-emerald-400 font-mono tracking-[0.2em] mb-1">
+                SELECTED PATIENT
+              </div>
+              <div className="text-xl font-bold text-white tracking-wide">
+                Bed {selectedPatient.bed} <span className="text-slate-500 mx-1">—</span> {selectedPatient.name}
+              </div>
+              <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-2">
+                <span className="truncate">{selectedPatient.admitReason}</span>
+                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                <span className="whitespace-nowrap">Age {selectedPatient.age}</span>
+              </div>
             </div>
-            <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '4px' }}>
-              Bed {selectedPatient.bed} — {selectedPatient.name}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              {selectedPatient.admitReason} • Age {selectedPatient.age}
-            </div>
+            
+            {/* Generate Family QR Action */}
+            <GenerateAccessQR patientId={selectedPatient.id} />
           </div>
         </div>
 
