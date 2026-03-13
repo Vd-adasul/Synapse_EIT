@@ -32,6 +32,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install dependencies
+        working-directory: ./synapse-mobile
+        run: npm install
+
       - name: Prebuild Android project
         working-directory: ./synapse-mobile
         run: npx expo prebuild --platform android --clean
