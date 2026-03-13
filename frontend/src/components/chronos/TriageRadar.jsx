@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, Activity, Zap, Skull } from 'lucide-react'
+import { AlertTriangle, Activity, Zap } from 'lucide-react'
 
 export default function TriageRadar({ patients, selected, onSelect }) {
   const sorted = [...patients].sort((a, b) => b.aggregateRisk - a.aggregateRisk)
@@ -135,7 +135,6 @@ function PatientCard({ patient, isSelected, onClick, rank }) {
           <RiskBar label="Shock" value={patient.riskScores.shock} icon={Zap} labelWidth="w-20" />
           <RiskBar label="Sepsis" value={patient.riskScores.sepsis} icon={Activity} labelWidth="w-20" />
           <RiskBar label="Deterioration" value={patient.riskScores.deterioration} icon={AlertTriangle} labelWidth="w-20" />
-          <RiskBar label="Arrest" value={patient.riskScores.arrest} icon={Skull} labelWidth="w-20" />
         </motion.div>
       )}
     </button>
