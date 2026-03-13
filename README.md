@@ -1,4 +1,4 @@
-# Synapse EIT (Xen-0-thon)
+# Synapse EIT (HackIndia)
 
 Welcome to the Synapse EIT project! This repository contains tools for medical data analysis, model training, and a specialized "Surgical Black Box" simulation system with a real-time monitoring dashboard.
 
