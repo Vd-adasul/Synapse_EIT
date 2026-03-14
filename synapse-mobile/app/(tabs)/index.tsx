@@ -186,34 +186,23 @@ function useSimulatedVitals(initialVitals: Record<string, number>) {
 }
 
 // ==========================================
-// REAL-TIME PATIENT SIMULATION HOOK -> LIVE SUPABASE DATA
+// REAL-TIME PATIENT SIMULATION HOOK
 // ==========================================
-function useLivePatients() {
-  const [patients, setPatients] = useState<any[]>([]);
-
+function useSimulatedPatients(initialPatients: any[]) {
+  const [patients, setPatients] = useState(initialPatients);
+  
   useEffect(() => {
-    const fetchPatients = async () => {
-      const { data, error } = await supabase.from('patients').select('*').order('bed_number', { ascending: true });
-      if (data) {
-        // Map DB columns to our UI requirements
-        const mapped = data.map((p: any) => ({
+    const interval = setInterval(() => {
+      setPatients(prev => prev.map(p => {
+        const hrDelta = Math.floor((Math.random() - 0.48) * 3);
+        const mapDelta = Math.floor((Math.random() - 0.48) * 2);
+        return {
           ...p,
-          bed: p.bed_number || 'N/A',
-          risk: `${p.chronos_risk_score}%`,
-          riskNum: p.chronos_risk_score,
-          status: p.chronos_risk_score > 90 ? 'CRITICAL' : p.chronos_risk_score > 80 ? 'WARNING' : 'STABLE',
-          color: p.chronos_risk_score > 90 ? '#e11d48' : p.chronos_risk_score > 80 ? '#fbbf24' : '#34d399',
-          alert: p.chronos_risk_score > 90 ? `BED ${p.bed_number}: MAP DROPPING — IMMEDIATE REVIEW` : null,
-          hr: 80 + Math.floor(Math.random() * 20), // Placeholder vitals if not in patients table directly
-          map: 60 + Math.floor(Math.random() * 15)
-        }));
-        setPatients(mapped);
-      }
-    };
-
-    fetchPatients();
-    // Refresh every few seconds for hackathon demo simplicity
-    const interval = setInterval(fetchPatients, 3000);
+          hr: p.hr + hrDelta,
+          map: p.map + mapDelta
+        };
+      }));
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -301,7 +290,11 @@ function DoctorDashboard({ onBack, t, darkMode }: { onBack: () => void; t: any; 
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
   const [showVoice, setShowVoice] = useState(false); // Feature #5
 
-  const patients = useLivePatients();
+  const patients = useSimulatedPatients([
+    { bed: '11', name: 'M. Reddy', risk: '92%', riskNum: 92, status: 'CRITICAL', color: '#e11d48', condition: 'Septic Shock', hr: 134, map: 48, alert: 'BED 11: MAP DROPPING — IMMEDIATE REVIEW' },
+    { bed: '04', name: 'R. Sharma', risk: '89%', riskNum: 89, status: 'WARNING', color: '#fbbf24', condition: 'Post-CABG Recovery', hr: 88, map: 62, alert: null },
+    { bed: '07', name: 'S. Patel', risk: '85%', riskNum: 85, status: 'WARNING', color: '#fbbf24', condition: 'Pneumonia', hr: 105, map: 55, alert: null },
+  ]);
 
   // Feature #3: Haptic on first load for critical patient
   useEffect(() => {

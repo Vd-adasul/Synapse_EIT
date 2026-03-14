@@ -103,7 +103,7 @@ export default function GenerateAccessQR({ patientId, inline = false }) {
       {(status === 'generated' || status === 'claimed') && token && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-[4px]">
           <div 
-            className="relative flex flex-col items-center max-w-[360px] w-[90vw] overflow-hidden rounded-2xl p-[28px]"
+            className="relative flex flex-col items-center max-w-[420px] w-[90vw] rounded-2xl p-[28px]"
             style={{ 
               background: 'rgba(15, 23, 30, 0.75)',
               backdropFilter: 'blur(14px)',
@@ -130,7 +130,7 @@ export default function GenerateAccessQR({ patientId, inline = false }) {
                 <>
                   <QRCodeSVG 
                     value={token} 
-                    size={200} 
+                    size={260} 
                     level="H" 
                     bgColor="#ffffff" 
                     fgColor="#000000"
