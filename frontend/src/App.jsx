@@ -4,10 +4,14 @@ import { AnimatePresence } from 'framer-motion'
 import ChronosView from './pages/ChronosView'
 import SentinelView from './pages/SentinelView'
 import CommandPalette from './components/CommandPalette'
+import DoctorQuickAuth from './components/auth/DoctorQuickAuth'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { playNavClick, playPaletteOpen } from './utils/sounds'
+import { LogOut } from 'lucide-react'
 import './styles/index.css'
 
-export default function App() {
+function AuthenticatedApp() {
+  const { isAuthenticated, loading, doctor, logout } = useAuth()
   const [showPalette, setShowPalette] = useState(false)
   const [activeView, setActiveView] = useState('chronos')
 
@@ -33,11 +37,40 @@ export default function App() {
     setShowPalette(false)
   }, [])
 
+  // Loading state
+  if (loading) {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#040608',
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          border: '2px solid rgba(52, 211, 153, 0.2)',
+          borderTopColor: '#34d399',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    )
+  }
+
+  // Show Quick Auth if not authenticated
+  if (!isAuthenticated) {
+    return <DoctorQuickAuth />
+  }
+
+  // Main authenticated dashboard
   return (
-    <BrowserRouter>
-      <div className="bg-[#06080d] text-gray-100 min-h-screen font-display">
-        {/* Ambient background */}
-        <div className="ambient-bg" />
+    <div className="bg-[#06080d] text-gray-100 min-h-screen font-display">
+      {/* Ambient background */}
+      <div className="ambient-bg" />
 
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 py-3 bg-glass-texture border-b border-white/5">
@@ -51,34 +84,91 @@ export default function App() {
           <NavTab active={activeView === 'sentinel'} onClick={() => navigate('sentinel')} icon="/images/ProjectSentinel.png" label="Project Sentinel" />
         </div>
 
-        <button
-          onClick={() => { playPaletteOpen(); setShowPalette(true) }}
-          style={{
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Doctor badge */}
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'var(--glass-bg)',
-            border: '1px solid var(--glass-border)',
-            color: 'var(--text-secondary)',
-            padding: '6px 14px',
-            borderRadius: 'var(--radius-full)',
-            cursor: 'pointer',
+            padding: '5px 12px',
+            borderRadius: '9999px',
+            background: 'rgba(52, 211, 153, 0.08)',
+            border: '1px solid rgba(52, 211, 153, 0.15)',
+            fontSize: '12px',
             fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            transition: 'var(--transition-smooth)',
-          }}
-          onMouseEnter={e => { e.target.style.borderColor = 'var(--glass-border-hover)'; e.target.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.color = 'var(--text-secondary)'; }}
-        >
-          <span>Search</span>
-          <kbd style={{
-            background: 'rgba(255,255,255,0.06)',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            fontSize: '10px',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}>⌘K</kbd>
-        </button>
+            color: '#34d399',
+          }}>
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#34d399',
+              boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+              animation: 'pulse-dot 2s infinite',
+            }} />
+            {doctor?.name || 'Doctor'}
+          </div>
+
+          {/* Search button */}
+          <button
+            onClick={() => { playPaletteOpen(); setShowPalette(true) }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'var(--glass-bg)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-secondary)',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full)',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              transition: 'var(--transition-smooth)',
+            }}
+            onMouseEnter={e => { e.target.style.borderColor = 'var(--glass-border-hover)'; e.target.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.color = 'var(--text-secondary)'; }}
+          >
+            <span>Search</span>
+            <kbd style={{
+              background: 'rgba(255,255,255,0.06)',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '10px',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}>⌘K</kbd>
+          </button>
+
+          {/* Logout button */}
+          <button
+            id="logout-btn"
+            onClick={logout}
+            title="Sign Out"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
+              background: 'rgba(255, 45, 85, 0.06)',
+              border: '1px solid rgba(255, 45, 85, 0.12)',
+              color: '#ff6b8a',
+              cursor: 'pointer',
+              transition: 'all 300ms',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(255, 45, 85, 0.15)'
+              e.currentTarget.style.borderColor = 'rgba(255, 45, 85, 0.3)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255, 45, 85, 0.06)'
+              e.currentTarget.style.borderColor = 'rgba(255, 45, 85, 0.12)'
+            }}
+          >
+            <LogOut size={15} />
+          </button>
+        </div>
       </nav>
 
       {/* Main Content */}
@@ -97,7 +187,16 @@ export default function App() {
           />
         )}
       </AnimatePresence>
-      </div>
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

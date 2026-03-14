@@ -37,6 +37,10 @@ export default function ChronosView() {
   const [livePatients, setLivePatients] = useState(patients)
   const livePatientsRef = useRef(patients)
   
+  const [liveVitals, setLiveVitals] = useState(patients[0].currentVitals)
+  const [liveHistory, setLiveHistory] = useState(patients[0].vitalHistory)
+  const vitalsRef = useRef(patients[0].currentVitals)
+
   // Risk simulation: fluctuate scores every 3s (mean-reverting to baseline)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -69,22 +73,39 @@ export default function ChronosView() {
 
   const selectedPatient = livePatients.find(p => p.id === selectedId) || livePatients[0]
   
-  // Real-time vitals simulation state
-  const [liveVitals, setLiveVitals] = useState(selectedPatient.currentVitals)
-  const [liveHistory, setLiveHistory] = useState(selectedPatient.vitalHistory)
-  const vitalsRef = useRef(selectedPatient.currentVitals)
+  // Vitals simulation engine: tick every 1.5s reading the real timeline datastream
+  const timeIndexRef = useRef(0)
 
   // Reset when patient changes
   useEffect(() => {
     setLiveVitals(selectedPatient.currentVitals)
     setLiveHistory(selectedPatient.vitalHistory)
     vitalsRef.current = selectedPatient.currentVitals
+    timeIndexRef.current = selectedPatient.vitalHistory.length // Start reading after historical span
   }, [selectedId])
 
-  // Vitals simulation engine: tick every 1.5s
   useEffect(() => {
     const interval = setInterval(() => {
-      const next = simulateVitals(vitalsRef.current, selectedPatient.status)
+      const timeseries = selectedPatient.realTimeSeries || [];
+      if (timeseries.length === 0) return; // Fallback if no data somehow
+
+      // Loop over data array
+      if (timeIndexRef.current >= timeseries.length) {
+        timeIndexRef.current = 0; 
+      }
+      
+      const nextReal = timeseries[timeIndexRef.current];
+      timeIndexRef.current += 1;
+
+      // Extract raw vitals to overlay onto current state
+      const next = {
+        heart_rate: nextReal.heart_rate || vitalsRef.current.heart_rate,
+        spo2: nextReal.spo2 || vitalsRef.current.spo2,
+        map: nextReal.map || vitalsRef.current.map,
+        lactate: nextReal.lactate || vitalsRef.current.lactate,
+        respiratory_rate: nextReal.respiratory_rate || vitalsRef.current.respiratory_rate,
+      }
+
       vitalsRef.current = next
       setLiveVitals(next)
       setLiveHistory(prev => {

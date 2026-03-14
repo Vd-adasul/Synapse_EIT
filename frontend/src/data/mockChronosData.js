@@ -1,27 +1,43 @@
-// Realistic simulated ICU patient data for Chronos demo
-// 10 patients with risk scores, vitals, and SHAP features
+import realVitals from './realPatientVitals.json';
 
-const VITAL_NAMES = ['heart_rate', 'respiratory_rate', 'spo2', 'map_arterial', 'map_nibp', 'lactate'];
+// Simulated risk scores and SHAP features are preserved for the Chronos UI layout.
+// Vitals are now pulled exclusively from the real MIMIC III datastream `dataset preparation/chartevents.csv`
 
-function generateVitalHistory(baseHr, baseSpo2, baseMap, baseLactate, baseRr, volatility = 1) {
-  const points = [];
-  let hr = baseHr, spo2 = baseSpo2, map = baseMap, lactate = baseLactate, rr = baseRr;
-  for (let i = 0; i < 24; i++) {
-    hr += (Math.random() - 0.48) * 4 * volatility;
-    spo2 = Math.min(100, spo2 + (Math.random() - 0.5) * 1.5 * volatility);
-    map += (Math.random() - 0.5) * 3 * volatility;
-    lactate = Math.max(0.5, lactate + (Math.random() - 0.45) * 0.3 * volatility);
-    rr += (Math.random() - 0.5) * 2 * volatility;
-    points.push({
+function extractHistoryFromReal(patientId, count=24) {
+  const series = realVitals[patientId] || [];
+  // Grab the first 24 readings for the historical sparkline charts
+  const historyPoints = [];
+  
+  for (let i = 0; i < Math.min(count, series.length); i++) {
+    const pt = series[i];
+    historyPoints.push({
       hour: i,
-      heart_rate: Math.round(hr * 10) / 10,
-      spo2: Math.round(Math.min(100, spo2) * 10) / 10,
-      map: Math.round(map * 10) / 10,
-      lactate: Math.round(lactate * 100) / 100,
-      respiratory_rate: Math.round(rr * 10) / 10,
+      heart_rate: pt.heart_rate || 80,
+      spo2: pt.spo2 || 95,
+      map: pt.map || 65,
+      lactate: pt.lactate || 1.5,
+      respiratory_rate: pt.respiratory_rate || 16,
     });
   }
-  return points;
+  
+  // Pad if insufficient data points
+  while (historyPoints.length < count) {
+    historyPoints.push({ ...historyPoints[historyPoints.length - 1], hour: historyPoints.length });
+  }
+  return historyPoints;
+}
+
+function extractCurrentFromReal(patientId) {
+  const series = realVitals[patientId] || [];
+  // Start with the 25th row if we pulled 24 for history
+  const pt = series.length > 24 ? series[24] : series[0] || {};
+  return {
+    heart_rate: pt.heart_rate || 80,
+    spo2: pt.spo2 || 95,
+    map: pt.map || 65,
+    lactate: pt.lactate || 1.5,
+    respiratory_rate: pt.respiratory_rate || 16,
+  };
 }
 
 export const patients = [
@@ -34,8 +50,9 @@ export const patients = [
     riskScores: { shock: 0.89, sepsis: 0.72, deterioration: 0.81, arrest: 0.62 },
     aggregateRisk: 0.89,
     status: 'critical',
-    currentVitals: { heart_rate: 128, spo2: 88.2, map: 52, lactate: 4.8, respiratory_rate: 28 },
-    vitalHistory: generateVitalHistory(115, 92, 58, 3.2, 24, 2.5),
+    currentVitals: extractCurrentFromReal('P-1042'),
+    vitalHistory: extractHistoryFromReal('P-1042'),
+    realTimeSeries: realVitals['P-1042'] || [],
     shapFeatures: [
       { feature: 'Lactate (t-1)', value: 0.28, direction: 'risk' },
       { feature: 'MAP (t-2)', value: -0.22, direction: 'risk' },
@@ -55,8 +72,9 @@ export const patients = [
     riskScores: { shock: 0.34, sepsis: 0.85, deterioration: 0.58, arrest: 0.22 },
     aggregateRisk: 0.85,
     status: 'critical',
-    currentVitals: { heart_rate: 112, spo2: 90.1, map: 61, lactate: 3.9, respiratory_rate: 32 },
-    vitalHistory: generateVitalHistory(100, 93, 65, 2.8, 26, 2.0),
+    currentVitals: extractCurrentFromReal('P-2718'),
+    vitalHistory: extractHistoryFromReal('P-2718'),
+    realTimeSeries: realVitals['P-2718'] || [],
     shapFeatures: [
       { feature: 'Lactate (t-1)', value: 0.32, direction: 'risk' },
       { feature: 'Resp. Rate (t-2)', value: 0.24, direction: 'risk' },
@@ -76,8 +94,9 @@ export const patients = [
     riskScores: { shock: 0.76, sepsis: 0.68, deterioration: 0.55, arrest: 0.41 },
     aggregateRisk: 0.76,
     status: 'critical',
-    currentVitals: { heart_rate: 105, spo2: 93.4, map: 56, lactate: 3.4, respiratory_rate: 22 },
-    vitalHistory: generateVitalHistory(95, 95, 60, 2.4, 20, 1.8),
+    currentVitals: extractCurrentFromReal('P-3141'),
+    vitalHistory: extractHistoryFromReal('P-3141'),
+    realTimeSeries: realVitals['P-3141'] || [],
     shapFeatures: [
       { feature: 'MAP (t-1)', value: -0.30, direction: 'risk' },
       { feature: 'Lactate (t-2)', value: 0.22, direction: 'risk' },
@@ -97,8 +116,9 @@ export const patients = [
     riskScores: { shock: 0.92, sepsis: 0.88, deterioration: 0.71, arrest: 0.55 },
     aggregateRisk: 0.92,
     status: 'critical',
-    currentVitals: { heart_rate: 134, spo2: 86.5, map: 48, lactate: 5.6, respiratory_rate: 34 },
-    vitalHistory: generateVitalHistory(120, 90, 52, 4.0, 28, 3.0),
+    currentVitals: extractCurrentFromReal('P-1618'),
+    vitalHistory: extractHistoryFromReal('P-1618'),
+    realTimeSeries: realVitals['P-1618'] || [],
     shapFeatures: [
       { feature: 'Lactate (t-1)', value: 0.38, direction: 'risk' },
       { feature: 'MAP (t-1)', value: -0.28, direction: 'risk' },
@@ -118,8 +138,9 @@ export const patients = [
     riskScores: { shock: 0.42, sepsis: 0.28, deterioration: 0.65, arrest: 0.38 },
     aggregateRisk: 0.65,
     status: 'observing',
-    currentVitals: { heart_rate: 98, spo2: 94.8, map: 65, lactate: 2.1, respiratory_rate: 20 },
-    vitalHistory: generateVitalHistory(88, 96, 70, 1.6, 18, 1.2),
+    currentVitals: extractCurrentFromReal('P-2236'),
+    vitalHistory: extractHistoryFromReal('P-2236'),
+    realTimeSeries: realVitals['P-2236'] || [],
     shapFeatures: [
       { feature: 'Heart Rate (t-1)', value: 0.16, direction: 'risk' },
       { feature: 'MAP (t-3)', value: -0.12, direction: 'risk' },
@@ -139,8 +160,9 @@ export const patients = [
     riskScores: { shock: 0.55, sepsis: 0.32, deterioration: 0.48, arrest: 0.18 },
     aggregateRisk: 0.55,
     status: 'observing',
-    currentVitals: { heart_rate: 92, spo2: 96.1, map: 72, lactate: 1.8, respiratory_rate: 18 },
-    vitalHistory: generateVitalHistory(85, 97, 75, 1.4, 17, 1.0),
+    currentVitals: extractCurrentFromReal('P-5050'),
+    vitalHistory: extractHistoryFromReal('P-5050'),
+    realTimeSeries: realVitals['P-5050'] || [],
     shapFeatures: [
       { feature: 'Heart Rate (t-2)', value: 0.12, direction: 'risk' },
       { feature: 'MAP (t-1)', value: -0.09, direction: 'risk' },
@@ -160,8 +182,9 @@ export const patients = [
     riskScores: { shock: 0.38, sepsis: 0.22, deterioration: 0.45, arrest: 0.52 },
     aggregateRisk: 0.52,
     status: 'observing',
-    currentVitals: { heart_rate: 88, spo2: 95.2, map: 68, lactate: 1.5, respiratory_rate: 19 },
-    vitalHistory: generateVitalHistory(82, 96, 72, 1.2, 18, 0.8),
+    currentVitals: extractCurrentFromReal('P-7777'),
+    vitalHistory: extractHistoryFromReal('P-7777'),
+    realTimeSeries: realVitals['P-7777'] || [],
     shapFeatures: [
       { feature: 'Heart Rate (t-1)', value: 0.10, direction: 'risk' },
       { feature: 'MAP (t-2)', value: -0.08, direction: 'risk' },
@@ -181,8 +204,9 @@ export const patients = [
     riskScores: { shock: 0.18, sepsis: 0.12, deterioration: 0.22, arrest: 0.08 },
     aggregateRisk: 0.22,
     status: 'stable',
-    currentVitals: { heart_rate: 78, spo2: 98.4, map: 82, lactate: 0.9, respiratory_rate: 15 },
-    vitalHistory: generateVitalHistory(75, 98, 85, 0.8, 15, 0.5),
+    currentVitals: extractCurrentFromReal('P-4242'),
+    vitalHistory: extractHistoryFromReal('P-4242'),
+    realTimeSeries: realVitals['P-4242'] || [],
     shapFeatures: [
       { feature: 'Heart Rate (t-1)', value: 0.03, direction: 'protective' },
       { feature: 'MAP (t-1)', value: 0.05, direction: 'protective' },
@@ -202,8 +226,9 @@ export const patients = [
     riskScores: { shock: 0.08, sepsis: 0.06, deterioration: 0.12, arrest: 0.04 },
     aggregateRisk: 0.12,
     status: 'stable',
-    currentVitals: { heart_rate: 72, spo2: 99.0, map: 88, lactate: 0.7, respiratory_rate: 14 },
-    vitalHistory: generateVitalHistory(70, 99, 90, 0.6, 14, 0.3),
+    currentVitals: extractCurrentFromReal('P-9090'),
+    vitalHistory: extractHistoryFromReal('P-9090'),
+    realTimeSeries: realVitals['P-9090'] || [],
     shapFeatures: [
       { feature: 'SpO2 (t-1)', value: 0.06, direction: 'protective' },
       { feature: 'MAP (t-1)', value: 0.05, direction: 'protective' },
@@ -223,8 +248,9 @@ export const patients = [
     riskScores: { shock: 0.15, sepsis: 0.20, deterioration: 0.18, arrest: 0.06 },
     aggregateRisk: 0.20,
     status: 'stable',
-    currentVitals: { heart_rate: 80, spo2: 97.8, map: 78, lactate: 1.1, respiratory_rate: 16 },
-    vitalHistory: generateVitalHistory(78, 98, 80, 1.0, 16, 0.6),
+    currentVitals: extractCurrentFromReal('P-6180'),
+    vitalHistory: extractHistoryFromReal('P-6180'),
+    realTimeSeries: realVitals['P-6180'] || [],
     shapFeatures: [
       { feature: 'Lactate (t-1)', value: 0.05, direction: 'risk' },
       { feature: 'MAP (t-2)', value: 0.04, direction: 'protective' },

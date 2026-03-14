@@ -127,7 +127,7 @@ export default function GenerateAccessQR({ patientId, inline = false }) {
             
             <div className={status === 'claimed' ? "" : "relative bg-white p-[14px] rounded-xl shadow-md mb-4"}>
               {status === 'generated' && (
-                <>
+                <div onClick={() => setStatus('claimed')} style={{ cursor: 'pointer' }}>
                   <QRCodeSVG 
                     value={token} 
                     size={260} 
@@ -138,10 +138,10 @@ export default function GenerateAccessQR({ patientId, inline = false }) {
                   />
                   {/* Futuristic Scanline Overlay */}
                   <div 
-                    className="absolute left-0 right-0 h-1 bg-gradient-to-b from-transparent to-emerald-400 shadow-[0_4px_10px_rgba(16,185,129,0.6)] opacity-70"
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-b from-transparent to-emerald-400 shadow-[0_4px_10px_rgba(16,185,129,0.6)] opacity-70 cursor-pointer pointer-events-none"
                     style={{ animation: 'scanline 2.5s infinite linear' }}
                   />
-                </>
+                </div>
               )}
               {status === 'claimed' && (
                 <div className="flex flex-col items-center justify-center w-[200px] h-[200px] rounded-xl border-2 border-emerald-500 bg-emerald-500/10 animate-in zoom-in duration-300">
