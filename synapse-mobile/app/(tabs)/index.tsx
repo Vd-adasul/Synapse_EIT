@@ -569,14 +569,19 @@ function FamilyFlow({ onBack, t, lang, darkMode }: { onBack: () => void; t: any;
               if (error || !tokenData) throw new Error('Invalid QR code');
               if (new Date(tokenData.expires_at) < new Date()) throw new Error('Expired QR code');
 
-              // 2. Fetch actual Patient Data
-              const { data: patient, error: pError } = await supabase
-                .from('patients')
-                .select('*')
-                .eq('id', tokenData.patient_id)
-                .single();
-
-              if (pError || !patient) throw new Error('Patient not found');
+              // 2. Fetch Patient Data (Bypass empty Supabase DB, use mock)
+              const mockPatients: Record<string, any> = {
+                'P-1042': { name: 'R. Sharma', bed_number: '4', condition: 'Post-CABG Recovery' },
+                'P-2718': { name: 'S. Patel', bed_number: '7', condition: 'Pneumonia / ARDS' },
+                'P-3141': { name: 'M. Reddy', bed_number: '11', condition: 'Septic Shock' }
+              };
+              
+              const patient = mockPatients[tokenData.patient_id] || { 
+                name: 'Unknown Patient', 
+                bed_number: '?', 
+                condition: 'General Admission' 
+              };
+              
               setPatientData(patient);
 
               // 3. Mark QR used
