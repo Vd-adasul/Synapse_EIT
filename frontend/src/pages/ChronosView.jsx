@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import HumanModel3D from '../components/chronos/HumanModel3D'
 import TriageRadar from '../components/chronos/TriageRadar'
 import CrashOdometer from '../components/chronos/CrashOdometer'
@@ -8,13 +8,97 @@ import GenerateAccessQR from '../components/chronos/GenerateAccessQR'
 import { patients } from '../data/mockChronosData'
 import { playCriticalBeep, playNavClick } from '../utils/sounds'
 
+// Realistic vital fluctuation config
+const VITAL_SIM = {
+  heart_rate:       { variance: 3,    decimals: 0, min: 40,  max: 200 },
+  spo2:             { variance: 0.5,  decimals: 1, min: 70,  max: 100 },
+  map:              { variance: 2,    decimals: 0, min: 30,  max: 120 },
+  lactate:          { variance: 0.15, decimals: 2, min: 0.3, max: 15  },
+  respiratory_rate: { variance: 1,    decimals: 0, min: 8,   max: 50  },
+}
+
+function simulateVitals(base, status) {
+  const volatility = status === 'critical' ? 2.0 : status === 'observing' ? 1.2 : 0.6
+  const next = {}
+  for (const [key, cfg] of Object.entries(VITAL_SIM)) {
+    const current = base[key]
+    const delta = (Math.random() - 0.48) * cfg.variance * volatility
+    const raw = current + delta
+    const clamped = Math.max(cfg.min, Math.min(cfg.max, raw))
+    next[key] = Number(clamped.toFixed(cfg.decimals))
+  }
+  return next
+}
+
 export default function ChronosView() {
-  const [selectedPatient, setSelectedPatient] = useState(patients[0])
+  const [selectedId, setSelectedId] = useState(patients[0].id)
+  
+  // Live patients with fluctuating risk scores
+  const [livePatients, setLivePatients] = useState(patients)
+  const livePatientsRef = useRef(patients)
+  
+  // Risk simulation: fluctuate scores every 3s (mean-reverting to baseline)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const updated = livePatientsRef.current.map(p => {
+        const base = patients.find(bp => bp.id === p.id)
+        const jitter = (key) => {
+          const current = p.riskScores[key]
+          const baseline = base.riskScores[key]
+          // Random walk step
+          const randomStep = (Math.random() - 0.5) * 0.04
+          // Mean reversion (gravity towards baseline)
+          const pull = (baseline - current) * 0.1
+          const v = current + randomStep + pull
+          return Math.max(0.02, Math.min(0.99, Number(v.toFixed(3))))
+        }
+        const newScores = {
+          shock: jitter('shock'),
+          sepsis: jitter('sepsis'),
+          deterioration: jitter('deterioration'),
+          arrest: jitter('arrest'),
+        }
+        const newAggregate = Math.max(newScores.shock, newScores.sepsis, newScores.deterioration, newScores.arrest)
+        return { ...p, riskScores: newScores, aggregateRisk: Number(newAggregate.toFixed(3)) }
+      })
+      livePatientsRef.current = updated
+      setLivePatients(updated)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const selectedPatient = livePatients.find(p => p.id === selectedId) || livePatients[0]
+  
+  // Real-time vitals simulation state
+  const [liveVitals, setLiveVitals] = useState(selectedPatient.currentVitals)
+  const [liveHistory, setLiveHistory] = useState(selectedPatient.vitalHistory)
+  const vitalsRef = useRef(selectedPatient.currentVitals)
+
+  // Reset when patient changes
+  useEffect(() => {
+    setLiveVitals(selectedPatient.currentVitals)
+    setLiveHistory(selectedPatient.vitalHistory)
+    vitalsRef.current = selectedPatient.currentVitals
+  }, [selectedId])
+
+  // Vitals simulation engine: tick every 1.5s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const next = simulateVitals(vitalsRef.current, selectedPatient.status)
+      vitalsRef.current = next
+      setLiveVitals(next)
+      setLiveHistory(prev => {
+        const updated = [...prev, next]
+        return updated.length > 30 ? updated.slice(-30) : updated
+      })
+    }, 1500)
+    return () => clearInterval(interval)
+  }, [selectedId])
 
   const handleSelectPatient = useCallback((patient) => {
     playNavClick()
     if (patient.status === 'critical') playCriticalBeep()
-    setSelectedPatient(patient)
+    setSelectedId(patient.id)
   }, [])
 
   return (
@@ -60,6 +144,7 @@ export default function ChronosView() {
             }}>ICU Predictive Command Center</h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <GenerateAccessQR patientId={selectedPatient.id} inline={true} />
             <StatusIndicator status={selectedPatient.status} />
             <CrashOdometer value={selectedPatient.aggregateRisk} />
           </div>
@@ -76,9 +161,9 @@ export default function ChronosView() {
             highlightOrgan={selectedPatient.highlightOrgan}
             riskLevel={selectedPatient.aggregateRisk}
           />
-          {/* Patient info overlay with QR action */}
-          <div className="absolute bottom-6 left-6 flex flex-col gap-3 w-72 z-40">
-            <div className="bg-slate-900/60 backdrop-blur-xl p-5 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
+          {/* Patient info overlay */}
+          <div className="absolute bottom-6 left-6 flex flex-col gap-3 w-80 z-40">
+            <div className="bg-slate-900/60 backdrop-blur-xl px-6 py-5 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
               {/* Decorative accent line */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/50"></div>
               
@@ -88,15 +173,12 @@ export default function ChronosView() {
               <div className="text-xl font-bold text-white tracking-wide">
                 Bed {selectedPatient.bed} <span className="text-slate-500 mx-1">—</span> {selectedPatient.name}
               </div>
-              <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-2">
+              <div className="text-xs text-slate-400 mt-1.5 flex items-center justify-center gap-2">
                 <span className="truncate">{selectedPatient.admitReason}</span>
                 <span className="w-1 h-1 rounded-full bg-slate-600"></span>
                 <span className="whitespace-nowrap">Age {selectedPatient.age}</span>
               </div>
             </div>
-            
-            {/* Generate Family QR Action */}
-            <GenerateAccessQR patientId={selectedPatient.id} />
           </div>
         </div>
 
@@ -115,7 +197,7 @@ export default function ChronosView() {
         minHeight: 0,
       }}>
         <TriageRadar
-          patients={patients}
+          patients={livePatients}
           selected={selectedPatient}
           onSelect={handleSelectPatient}
         />
@@ -123,7 +205,7 @@ export default function ChronosView() {
 
       {/* Bottom: Vitals Ticker */}
       <div style={{ gridColumn: '1', gridRow: '2' }}>
-        <VitalsTicker vitals={selectedPatient.currentVitals} history={selectedPatient.vitalHistory} status={selectedPatient.status} />
+        <VitalsTicker vitals={liveVitals} history={liveHistory} status={selectedPatient.status} />
       </div>
     </div>
   )

@@ -1,14 +1,14 @@
 // Utility to load Sentinel data from black box/output/
 // Falls back to embedded sample data for demo resilience
 
-const SAMPLE_TELEMETRY = Array.from({ length: 120 }, (_, i) => {
+const SAMPLE_TELEMETRY = Array.from({ length: 360 }, (_, i) => {
   const t = i * 0.5;
-  const isHrSpike = t >= 10 && t <= 15;
-  const isSpo2Drop = t >= 30 && t <= 35;
+  const isHrSpike = (t >= 10 && t <= 15) || (t >= 120 && t <= 125);
+  const isSpo2Drop = (t >= 30 && t <= 35) || (t >= 150 && t <= 155);
   const hr = (isHrSpike ? 115 : 75) + (Math.random() - 0.5) * 4;
   const spo2 = Math.min(100, (isSpo2Drop ? 88 : 98) + (Math.random() - 0.5) * 1.5);
   const bp = 120 + (Math.random() - 0.5) * 10;
-  const motion = Math.random() * (t > 20 && t < 22 ? 45 : 8);
+  const motion = Math.random() * ((t > 20 && t < 22) || (t > 140 && t < 142) ? 45 : 8);
   const tags = [];
   if (hr > 110) tags.push({ type: 'HR_SPIKE', message: 'CRITICAL: Tachycardia Detected', reason: `Heart rate reached ${hr.toFixed(1)} BPM (>110)` });
   if (spo2 < 92) tags.push({ type: 'SPO2_DROP', message: 'WARNING: Desaturation Detected', reason: `SpO2 dropped to ${spo2.toFixed(1)}% (<92%)` });

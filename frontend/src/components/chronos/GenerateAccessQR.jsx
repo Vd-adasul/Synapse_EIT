@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
 import { QRCodeSVG } from 'qrcode.react'
 
-export default function GenerateAccessQR({ patientId }) {
+export default function GenerateAccessQR({ patientId, inline = false }) {
   const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('idle') // 'idle' | 'generating' | 'generated' | 'claimed'
@@ -70,68 +70,112 @@ export default function GenerateAccessQR({ patientId }) {
         <button 
           onClick={handleGenerateQR}
           disabled={loading}
-          className="mt-4 w-full py-2.5 px-4 rounded-lg border border-emerald-400 bg-emerald-500/10 text-emerald-300 font-mono text-xs uppercase tracking-[0.1em] hover:bg-emerald-500/20 hover:text-emerald-200 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.15)] backdrop-blur-md"
+          className={`py-2.5 px-4 rounded-lg border border-emerald-400 bg-emerald-500/10 text-emerald-300 font-mono text-xs uppercase tracking-[0.1em] hover:bg-emerald-500/20 hover:text-emerald-200 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.15)] backdrop-blur-md ${inline ? 'w-auto max-h-[40px]' : 'mt-4 w-full'}`}
           style={{ cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}
         >
-          {loading ? 'GENERATING SECURE TOKEN...' : 'GENERATE FAMILY ACCESS QR'}
+          {loading ? (inline ? 'GENERATING...' : 'GENERATING SECURE TOKEN...') : (inline ? 'FAMILY ACCESS QR' : 'GENERATE FAMILY ACCESS QR')}
         </button>
       )}
 
-      {status === 'generated' && token && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative bg-slate-900/80 backdrop-blur-xl border border-emerald-500/40 shadow-[0_0_50px_rgba(16,185,129,0.15)] rounded-2xl py-10 px-8 flex flex-col items-center max-w-sm w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
-            {/* Decorative gradient */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-400"></div>
-            
+      <style>{`
+        @keyframes cyber-entrance {
+          from { transform: scale(0.92) translateY(10px); opacity: 0; }
+          to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes scanline {
+          0% { transform: translateY(-5px); }
+          100% { transform: translateY(220px); }
+        }
+        @keyframes pulseDot {
+          0% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.3); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.6; }
+        }
+        .sync-dot {
+          width: 8px;
+          height: 8px;
+          background: #34d399;
+          border-radius: 50%;
+          animation: pulseDot 1.6s infinite;
+        }
+      `}</style>
+      
+      {(status === 'generated' || status === 'claimed') && token && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-[4px]">
+          <div 
+            className="relative flex flex-col items-center max-w-[360px] w-[90vw] overflow-hidden rounded-2xl p-[28px]"
+            style={{ 
+              background: 'rgba(15, 23, 30, 0.75)',
+              backdropFilter: 'blur(14px)',
+              border: '1px solid rgba(16,185,129,0.35)',
+              boxShadow: '0 0 0 1px rgba(16,185,129,0.15), 0 8px 40px rgba(0,0,0,0.6)',
+              animation: 'cyber-entrance 0.25s ease-out forwards'
+            }}
+          >
             <button
                onClick={() => setStatus('idle')}
-               className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors text-lg z-10"
+               className="absolute top-[12px] right-[12px] text-slate-500 hover:text-white transition-opacity opacity-70 hover:opacity-100 text-lg z-10 p-2"
              >
                ✕
              </button>
              
-             <h3 className="text-emerald-400 font-mono text-xs tracking-widest mb-8 text-center mt-2">SECURE FAMILY ACCESS LINK</h3>
+             <div className="w-full border-b border-emerald-500/20 pb-5 mb-5 text-center mt-1">
+               <h2 className="text-emerald-400 font-mono text-sm tracking-widest uppercase inline-block">
+                 {status === 'claimed' ? 'CONNECTION SUCCESSFUL' : 'SECURE FAMILY ACCESS LINK'}
+               </h2>
+             </div>
             
-            <div className="relative p-6 bg-black/40 rounded-xl border border-white/5 mb-6">
-              {/* Top Left Corner */}
-              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald-500/70 rounded-tl-xl"></div>
-              {/* Top Right Corner */}
-              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-emerald-500/70 rounded-tr-xl"></div>
-              {/* Bottom Left Corner */}
-              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald-500/70 rounded-bl-xl"></div>
-              {/* Bottom Right Corner */}
-              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald-500/70 rounded-br-xl"></div>
-
-              <QRCodeSVG 
-                value={token} 
-                size={160} 
-                level="H" 
-                bgColor="transparent" 
-                fgColor="#10b981"
-                includeMargin={true}
-              />
+            <div className={status === 'claimed' ? "" : "relative bg-white p-[10px] rounded-xl shadow-md overflow-hidden mb-4"}>
+              {status === 'generated' && (
+                <>
+                  <QRCodeSVG 
+                    value={token} 
+                    size={200} 
+                    level="H" 
+                    bgColor="#ffffff" 
+                    fgColor="#000000"
+                    includeMargin={false}
+                  />
+                  {/* Futuristic Scanline Overlay */}
+                  <div 
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-b from-transparent to-emerald-400 shadow-[0_4px_10px_rgba(16,185,129,0.6)] opacity-70"
+                    style={{ animation: 'scanline 2.5s infinite linear' }}
+                  />
+                </>
+              )}
+              {status === 'claimed' && (
+                <div className="flex flex-col items-center justify-center w-[200px] h-[200px] rounded-xl border-2 border-emerald-500 bg-emerald-500/10 animate-in zoom-in duration-300">
+                  <span className="text-6xl mb-4">✅</span>
+                  <span className="text-emerald-400 font-bold tracking-widest">CONNECTED</span>
+                </div>
+              )}
             </div>
             
-            <div className="flex items-center gap-3 mb-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-              </span>
-              <p className="text-emerald-400/80 font-mono text-[11px] uppercase tracking-[0.2em] animate-pulse">
-                Awaiting Mobile Sync...
+            {status === 'generated' && (
+              <div className="flex flex-col items-center w-full">
+                <div className="flex items-center justify-center gap-2 text-emerald-400 text-sm mb-[10px]">
+                  <span className="sync-dot"></span>
+                  <span className="font-mono text-xs uppercase tracking-widest">Awaiting Mobile Sync</span>
+                </div>
+
+                <p className="text-slate-400 text-[10px] text-center uppercase tracking-[0.15em] leading-relaxed">
+                  Scan this QR code using the Synapse Mobile App to establish a secure connection
+                </p>
+              </div>
+            )}
+            
+            {status === 'claimed' && (
+              <p className="text-sm text-emerald-400/80 text-center font-mono animate-pulse">
+                Family app is now receiving live telemetry.
               </p>
-            </div>
-
-            <p className="mt-4 text-[10px] text-slate-500 text-center leading-relaxed font-mono px-4">
-              SCAN THIS QR CODE USING THE SYNAPSE MOBILE APP TO ESTABLISH A SECURE CONNECTION
-            </p>
+            )}
           </div>
         </div>
       )}
 
       {status === 'claimed' && (
-        <div className="w-full py-2.5 px-4 rounded-lg border border-emerald-500 bg-emerald-500/20 text-emerald-400 font-mono text-xs uppercase tracking-[0.1em] flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)] backdrop-blur-md">
-          <span className="text-lg leading-none mr-2">✓</span> CONNECTION ESTABLISHED
+        <div className={`py-2.5 px-4 rounded-lg border border-emerald-500 bg-emerald-500/20 text-emerald-400 font-mono text-xs uppercase tracking-[0.1em] flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)] backdrop-blur-md ${inline ? 'w-auto max-h-[40px]' : 'w-full'}`}>
+          <span className="text-lg leading-none mr-2">✓</span> {inline ? 'SYNCED' : 'MOBILE SYNC ACTIVE'}
         </div>
       )}
 
