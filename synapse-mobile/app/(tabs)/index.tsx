@@ -43,7 +43,7 @@ const LANG: Record<string, Record<string, string>> = {
     whatThisMeansText: "Your family member's heart is beating at a healthy, steady pace. Their oxygen levels are excellent at 98%. Body temperature is normal. The breathing machine is gently assisting, and the AI system predicts a strong recovery path.",
     surgeryStage: 'SURGERY STAGE',
     postOp: 'Post-Op Recovery',
-    duration: 'Duration: 3h 35m • Dr. Verma attending',
+    duration: 'Duration: 3h 35m • Dr. Ravi Kant Gupta attending',
     sentinel: 'SENTINEL BLACK BOX',
     verified: '✓ INTEGRITY VERIFIED',
     tampered: '⚠️ TAMPER DETECTED',
@@ -163,29 +163,50 @@ function useLastUpdated() {
 // ==========================================
 // REAL-TIME VITALS SIMULATION HOOK
 // ==========================================
-function useSimulatedVitals(baseVitals: Record<string, number>) {
-  const [vitals, setVitals] = useState(baseVitals);
-  const ref = useRef(baseVitals);
+function useSimulatedVitals(initialVitals: Record<string, number>) {
+  const [vitals, setVitals] = useState(initialVitals);
+  const vitalsRef = useRef(initialVitals);
   
   useEffect(() => {
-    ref.current = baseVitals;
-    setVitals(baseVitals);
-  }, [JSON.stringify(baseVitals)]);
-
-  useEffect(() => {
     const interval = setInterval(() => {
-      const prev = ref.current;
       const next: Record<string, number> = {};
-      for (const [key, val] of Object.entries(prev)) {
+      for (const [key, val] of Object.entries(vitalsRef.current)) {
         const variance = key === 'hr' ? 3 : key === 'spo2' ? 0.5 : key === 'map' ? 2 : key === 'etco2' ? 1 : key === 'rr' ? 1 : key === 'temp' ? 0.05 : key === 'lactate' ? 0.1 : 1;
         const delta = (Math.random() - 0.48) * variance;
         next[key] = Number((val + delta).toFixed(key === 'temp' || key === 'lactate' || key === 'spo2' ? 1 : 0));
       }
-      ref.current = next;
+      vitalsRef.current = next;
       setVitals(next);
     }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  return vitals;
+}
+
+// ==========================================
+// REAL-TIME PATIENT SIMULATION HOOK
+// ==========================================
+function useSimulatedPatients(initialPatients: any[]) {
+  const [patients, setPatients] = useState(initialPatients);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPatients(prev => prev.map(p => {
+        const hrDelta = Math.floor((Math.random() - 0.48) * 3);
+        const mapDelta = Math.floor((Math.random() - 0.48) * 2);
+        return {
+          ...p,
+          hr: p.hr + hrDelta,
+          map: p.map + mapDelta
+        };
+      }));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return patients;
+}
 
   return vitals;
 }
@@ -269,11 +290,11 @@ function DoctorDashboard({ onBack, t, darkMode }: { onBack: () => void; t: any; 
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
   const [showVoice, setShowVoice] = useState(false); // Feature #5
 
-  const patients = [
+  const patients = useSimulatedPatients([
     { bed: '11', name: 'M. Reddy', risk: '92%', riskNum: 92, status: 'CRITICAL', color: '#e11d48', condition: 'Septic Shock', hr: 134, map: 48, alert: 'BED 11: MAP DROPPING — IMMEDIATE REVIEW' },
     { bed: '04', name: 'R. Sharma', risk: '89%', riskNum: 89, status: 'WARNING', color: '#fbbf24', condition: 'Post-CABG Recovery', hr: 88, map: 62, alert: null },
     { bed: '07', name: 'S. Patel', risk: '85%', riskNum: 85, status: 'WARNING', color: '#fbbf24', condition: 'Pneumonia', hr: 105, map: 55, alert: null },
-  ];
+  ]);
 
   // Feature #3: Haptic on first load for critical patient
   useEffect(() => {
@@ -371,7 +392,23 @@ function DoctorDashboard({ onBack, t, darkMode }: { onBack: () => void; t: any; 
         {/* SURGICAL TIMELINE */}
         <View style={styles.card}>
           <Text style={styles.statusLabel}>{t.surgicalTimeline}</Text>
-          <View style={{ marginTop: 10 }}>
+            {/* Add Dynamic Live Vitals for Doctor */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#111', padding: 12, borderRadius: 8, marginTop: 16 }}>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: '#aaa', fontSize: 10 }}>HEART RATE</Text>
+                <Text style={{ color: selectedPatient.color, fontSize: 18, fontWeight: 'bold' }}>{selectedPatient.hr} BPM</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: '#aaa', fontSize: 10 }}>MAP</Text>
+                <Text style={{ color: selectedPatient.color, fontSize: 18, fontWeight: 'bold' }}>{selectedPatient.map} mmHg</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: '#aaa', fontSize: 10 }}>SHOCK IDX</Text>
+                <Text style={{ color: selectedPatient.color, fontSize: 18, fontWeight: 'bold' }}>{(selectedPatient.hr / selectedPatient.map).toFixed(2)}</Text>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 24 }}>
             <Text style={{ color: '#34d399', fontSize: 12, marginBottom: 6 }}>● 06:30 — Anesthesia Induced</Text>
             <Text style={{ color: '#38bdf8', fontSize: 12, marginBottom: 6 }}>● 07:15 — Bypass Initiated</Text>
             <Text style={{ color: '#fbbf24', fontSize: 12, marginBottom: 6 }}>● 08:42 — Cross-clamp Released</Text>
@@ -393,7 +430,7 @@ function DoctorDashboard({ onBack, t, darkMode }: { onBack: () => void; t: any; 
     <View style={[styles.container, { paddingTop: 60 }]}>
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={onBack}><Text style={styles.backText}>{t.logout}</Text></TouchableOpacity>
-        <Text style={styles.headerBadgeText}>DR. KANT // ON CALL</Text>
+        <Text style={styles.headerBadgeText}>DR. RAVI KANT GUPTA // ON CALL</Text>
       </View>
 
       <Text style={styles.title}>{t.myPatients}</Text>
@@ -408,7 +445,7 @@ function DoctorDashboard({ onBack, t, darkMode }: { onBack: () => void; t: any; 
               p.status === 'CRITICAL' ? { transform: [{ scale: pulseAnim }] } : {},
             ]}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.patientName}>Bed {p.bed} - {p.name}</Text>
+                <Text style={styles.patientName}>Bed {p.bed} - {p.name} ({p.hr} bpm | {p.map} mmHg)</Text>
                 <Text style={[styles.statusLabel, { color: p.color }]}>{p.status}</Text>
                 {/* Feature #3: Alert badge for critical */}
                 {p.alert && (
@@ -567,7 +604,7 @@ function FamilyFlow({ onBack, t, lang, darkMode }: { onBack: () => void; t: any;
       {/* Doctor Info Card */}
       <View style={styles.doctorCard}>
         <Text style={styles.statusLabel}>{t.attendingSurgeon}</Text>
-        <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Dr. A. Verma, MD</Text>
+        <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Dr. Ravi Kant Gupta, MD</Text>
         <Text style={{ color: '#94a3b8', fontSize: 12 }}>14 Years Exp. • Cardiothoracic Specialist</Text>
       </View>
 

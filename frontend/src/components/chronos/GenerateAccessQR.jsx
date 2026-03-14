@@ -125,7 +125,7 @@ export default function GenerateAccessQR({ patientId, inline = false }) {
                </h2>
              </div>
             
-            <div className={status === 'claimed' ? "" : "relative bg-white p-[10px] rounded-xl shadow-md overflow-hidden mb-4"}>
+            <div className={status === 'claimed' ? "" : "relative bg-white p-[14px] rounded-xl shadow-md mb-4"}>
               {status === 'generated' && (
                 <>
                   <QRCodeSVG 
