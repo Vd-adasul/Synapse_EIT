@@ -107,7 +107,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({
           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           muted={false} // Master video can have audio if provided
         >
-          <source src="/video/videoplayback - Trim.mp4" type="video/mp4" />
+          <source src="/video/real video - Trim.mp4" type="video/mp4" />
         </video>
 
         {/* Master Meta Tag */}
@@ -187,7 +187,7 @@ const VideoPlayer = forwardRef(function VideoPlayer({
             loop
           >
             {/* Re-use surgical video for demonstration of extra feeds */}
-            <source src="/video/videoplayback - Trim.mp4" type="video/mp4" />
+            <source src="/video/real video - Trim.mp4" type="video/mp4" />
           </video>
           <div style={{
             position: 'absolute', top: 12, left: 16, zIndex: 11,
